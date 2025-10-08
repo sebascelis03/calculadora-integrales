@@ -1,5 +1,9 @@
 la venta se abre con este comando
 python main.py
+* Crea la estructura del proyecto separando lógica (calculo.py), interfaz (interfaz.py) y el punto de entrada (main.py).
+* Desarrolla la interfaz gráfica principal usando CustomTkinter.
+* Añade los paneles para los tres sistemas de coordenadas: rectangulares, cilíndricas y esféricas.
+* Integra las librerías SymPy y SciPy para el análisis y cálculo numérico de las integrales.
 
 
 Para el proyecto final de Cálculo Multivariado, se nos pidió desarrollar una herramienta 
