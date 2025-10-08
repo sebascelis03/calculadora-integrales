@@ -1,0 +1,130 @@
+la venta se abre con este comando
+python main.py
+
+
+Para el proyecto final de Cálculo Multivariado, se nos pidió desarrollar una herramienta 
+capaz de resolver varios de los temas que no habíamos visto en clase. El proyecto se divide 
+en dos puntos principales:
+
+Cálculo de integrales triples.
+Cálculo de integrales de superficie.
+
+Decidí enfocarme en crear una calculadora con una interfaz gráfica, pensando que la presentación 
+y la facilidad de uso serían puntos clave en la calificación.
+
+Aunque ya había visto algunos videos sobre programación en Python y creación de interfaces, nunca 
+había entendido del todo cómo conectar la lógica de los cálculos (el backend) con los botones y 
+ventanas (el frontend). Este proyecto se convirtió en la oportunidad perfecta para finalmente 
+aprenderlo.
+
+Mi plan inicial fue estructurar el código de manera organizada, separando la lógica matemática 
+en un archivo (calculo.py), el diseño de la ventana en otro (interfaz.py) y usando un archivo 
+principal (main.py) para unir todo.
+
+
+Los Primeros Pasos y las Primeras Complicaciones
+
+El primer paso fue instalar las librerías necesarias: customtkinter para la apariencia 
+moderna, y numpy, scipy y sympy para el poder de cálculo. Al ejecutar el comando 
+pip install customtkinter numpy scipy sympy, noté que se creó una carpeta nueva 
+llamada .venv. Al principio no le di mucha importancia, pero pronto se convertiría en 
+la clave para resolver mi primer gran problema.
+
+Después de escribir el código inicial, todo mi editor se llenó de errores. Líneas amarillas 
+subrayaban los import, con mensajes como “could not be resolved”. Al intentar ejecutar el 
+programa, la terminal me devolvía un ModuleNotFoundError. Fue frustrante. El comando decía que 
+las librerías se habían instalado, pero el programa actuaba como si no existieran.
+
+La solución estaba en esa carpeta .venv. Resulta que es un entorno virtual, una especie de 
+burbuja aislada para el proyecto. Mi error fue que, aunque las librerías se instalaron 
+dentro de esa burbuja, mi terminal y mi editor de código estaban trabajando fuera de ella. 
+Tuve que aprender a “activar” el entorno con un comando específico en 
+la terminal (.\.venv\Scripts\Activate) y luego configurar mi editor (VS Code) para 
+que usara el intérprete de Python de esa carpeta. Una vez hecho eso, los errores desaparecieron 
+y la ventana de la calculadora finalmente apareció en mi pantalla.
+
+
+Estado Actual y Reflexiones
+
+A pesar de lo complejo que fue el montaje inicial y la depuración de los errores de entorno, 
+la calculadora en su estado actual se ve bastante simple. Es una sola ventana con campos para 
+rellenar. Es curioso cómo horas de código y lógica pueden resultar en una interfaz minimalista. 
+Supongo que eso es señal de un buen diseño, aunque me queda la duda de si debería añadir 
+gráficos para hacerlo más visual. Quizás más adelante.
+
+Aproveché este impulso para aprender a usar Git y GitHub. Aunque por ahora solo sé lo básico 
+(crear un repositorio, hacer commit y push), me ha servido para llevar un control de versiones 
+y tener un respaldo de mi código en la nube. Es un gran paso para empezar a adoptar prácticas 
+más profesionales.
+
+En este momento, la calculadora está enfocada en el primer punto del proyecto: las integrales 
+triples, pero solo es capaz de realizar los cálculos en coordenadas rectangulares.
+Los botones para las coordenadas cilíndricas y esféricas ya están creados en la interfaz, pero 
+todavía no funcionan; son parte de las tareas pendientes para la siguiente etapa.
+
+Durante las pruebas iniciales noté que resuelve correctamente los ejercicios simples, pero al 
+introducir funciones más complejas con potencias, senos o cosenos, los resultados a veces 
+son erróneos. Aún no he identificado la causa exacta del error; lo revisaré mañana con la 
+mente más fresca.
+
+
+Planes a Futuro
+
+El siguiente gran paso es implementar el Punto 2: integrales de superficie. Esto requerirá modificar 
+la interfaz o crear una nueva para que el usuario pueda seleccionar qué tipo de integral quiere 
+calcular y mostrar los campos necesarios para cada una.
+
+También planeo terminar la funcionalidad de las coordenadas cilíndricas y esféricas en las 
+integrales triples, ya que son fundamentales para completar el primer punto del proyecto.
+
+Además, esta parte del trabajo me permitirá profundizar en temas como la parametrización 
+de superficies y la visualización tridimensional de funciones, lo que sin duda reforzará 
+mis conocimientos tanto en cálculo como en programación.
+
+
+
+Guía Rápida de Sintaxis para la Calculadora
+
+Para que los cálculos funcionen correctamente, es crucial escribir las funciones y los 
+límites siguiendo las reglas de la librería sympy.
+
+Potencias (ej. x³):
+
+x**3
+y**2
+
+
+Raíz cuadrada (ej. √x):
+
+sqrt(x)
+
+
+También funciona x**0.5.
+
+Funciones trigonométricas:
+
+Seno: sin(theta)
+
+Coseno: cos(phi)
+
+Constantes matemáticas:
+
+Número Pi (π): pi
+
+Número de Euler (e): E o exp(1)
+
+Para eˣ: exp(x)
+
+
+Cierre
+
+En resumen, este proyecto no solo me ha ayudado a aplicar conceptos matemáticos, 
+sino también a entender la importancia de la organización del código, el control de 
+versiones y la resolución de errores con paciencia.
+
+Por ahora, la calculadora puede resolver integrales triples en coordenadas rectangulares, 
+pero mi objetivo es completar las versiones cilíndrica y esférica, y posteriormente avanzar 
+con las integrales de superficie.
+
+Ha sido un reto técnico y personal que me deja preparado para abordar proyectos más 
+complejos en el futuro.
