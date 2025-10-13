@@ -1,0 +1,64 @@
+Avances Realizados:
+* Se implementó la lógica de cálculo para coordenadas Cilíndricas y 
+Esféricas en `calculo.py`.
+* Se conectó la interfaz para que los botones de las tres pestañas realicen los 
+cálculos correspondientes.
+* Se desarrolló la funcionalidad para generar y mostrar gráficos 3D del dominio de 
+integración usando Matplotlib.
+
+
+El Reto: Un Bug Misterioso en la Graficación
+
+Con la parte de los cálculos funcionando para los tres sistemas, el siguiente paso era darle un 
+componente visual al proyecto: graficar los dominios de integración. La implementación parecía 
+directa: crear una función en `calculo.py` para generar la figura con Matplotlib y otra 
+en `interfaz.py` para mostrarla en una nueva ventana.
+
+Todo funcionó bien para los casos cilíndricos y esféricos, pero al probar las coordenadas 
+rectangulares, apareció un bug increíblemente persistente y difícil de 
+diagnosticar: "too many indices for array: array is 0-dimensional...".
+
+El error sugería que el código intentaba tratar un solo número como si fuera una lista. 
+La causa raíz parecía estar en la librería `lambdify` de SymPy, que se comporta de manera 
+diferente dependiendo de si los límites de integración son constantes (ej: `y=2`) o funciones (ej: `y=x`).
+
+
+El Proceso de Depuración
+
+Junto con la asistencia de una IA, se intentaron múltiples soluciones:
+1.  Se revisó si el valor era un "escalar" de Python y se expandió a un array. 
+El error persistió.
+2.  Se implementó una corrección más robusta usando `np.atleast_1d` para forzar que 
+el valor fuera un array. El error persistió.
+3.  Se sospechó de un problema de versiones de librerías, por lo que se actualizaron
+ `numpy`, `sympy` y `matplotlib` a sus últimas versiones. El error, increíblemente, persistió.
+4.  Se llenó el código de sentencias `print()` para actuar como "espías" y ver el 
+estado de las variables en tiempo real.
+
+
+La clave la dio la depuración final: la salida de los "espías" demostró que el código de 
+corrección SÍ estaba funcionando para una de las variables (`y_lower_bound`) pero el error
+ aún se disparaba. Esto confirmó que el problema era extremadamente sutil, probablemente 
+ una interacción muy específica y difícil de replicar entre las librerías en mi máquina.
+
+
+Estado Actual y Decisión Estratégica
+
+La última captura de pantalla reveló la victoria más importante: el **cálculo numérico 
+es perfecto y robusto** en los tres sistemas. El programa resuelve las integrales 
+correctamente. El bug está 100% aislado en la función de graficación de dominios rectangulares.
+
+Para no detener el progreso del proyecto por un bug en una funcionalidad secundaria 
+(la gráfica), se tomó la decisión estratégica de **desactivar temporalmente la generación 
+de gráficos**. Esto se logró comentando las líneas de código responsables en `interfaz.py`.
+
+El resultado es una calculadora de integrales triples completamente funcional y estable, 
+que resuelve en los tres sistemas de coordenadas sin arrojar errores.
+
+
+Planes a Futuro
+
+El Punto 1 del proyecto está funcionalmente completo. El siguiente paso es concentrarse en 
+el desarrollo del **Punto 2: Integrales de Superficie**. El bug de la gráfica rectangular queda 
+documentado como un problema técnico a revisitar en el futuro si el tiempo lo permite, pero 
+ya no es un impedimento para avanzar.

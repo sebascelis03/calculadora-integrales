@@ -1,93 +1,154 @@
 # calculo.py
-# Este archivo contiene toda la lógica para resolver las integrales.
 
+import sympy as sp
 import numpy as np
-import sympy
-from scipy.integrate import tplquad
+import matplotlib.pyplot as plt
 
-def resolver_integral_triple(funcion_str, var_str, limites, coordenadas='rectangulares'):
-    """
-    Resuelve una integral triple numérica a partir de strings.
+class MathBackend:
+    def __init__(self):
+        self.x, self.y, self.z = sp.symbols('x y z')
+        self.r, self.theta = sp.symbols('r theta')
+        self.rho, self.phi = sp.symbols('rho phi')
 
-    Args:
-        funcion_str (str): La función a integrar como texto (ej. "x*y + z").
-        var_str (list): Lista de variables en orden de integración (ej. ['z', 'y', 'x']).
-        limites (dict): Un diccionario con los límites para cada variable.
-        coordenadas (str): El sistema de coordenadas ('rectangulares', 'cilindricas', 'esfericas').
+    def _parse_expression(self, expr_str):
+        return sp.sympify(expr_str)
 
-    Returns:
-        float: El resultado de la integral o un mensaje de error.
-    """
-    try:
-        # 1. Definir los símbolos de las variables con SymPy
-        x, y, z, r, theta, rho, phi = sympy.symbols('x y z r theta rho phi')
-        
-        # Mapeo de variables según el sistema de coordenadas
-        mapa_vars = {
-            'rectangulares': (x, y, z),
-            'cilindricas': (r, theta, z),
-            'esfericas': (rho, phi, theta)
-        }
-        
-        # Símbolos para la función a evaluar (siempre son x, y, z)
-        simbolos_func = {'x': x, 'y': y, 'z': z}
+    def solve_triple_integral(self, func_str, limits, mode):
+        try:
+            if mode == "Rectangulares":
+                return self._solve_rectangular(func_str, limits)
+            elif mode == "Cilíndricas":
+                return self._solve_cylindrical(func_str, limits)
+            elif mode == "Esféricas":
+                return self._solve_spherical(func_str, limits)
+            else:
+                return {"error": "Modo no soportado"}
+        except Exception as e:
+            return {"error": f"Error en el cálculo: {e}"}
 
-        # 2. Transformar la función de texto a una función numérica
-        # El usuario escribe la función en términos de x, y, z
-        expr_func = sympy.sympify(funcion_str, locals=simbolos_func)
+    def _solve_rectangular(self, func_str, limits):
+        f = self._parse_expression(func_str)
+        lim_x = [self._parse_expression(l) for l in limits['x']]
+        lim_y = [self._parse_expression(l) for l in limits['y']]
+        lim_z = [self._parse_expression(l) for l in limits['z']]
+        integral = sp.integrate(f, (self.z, lim_z[0], lim_z[1]), (self.y, lim_y[0], lim_y[1]), (self.x, lim_x[0], lim_x[1]))
+        proceso = f"∫({lim_x[0]})→({lim_x[1]}) ∫({lim_y[0]})→({lim_y[1]}) ∫({lim_z[0]})→({lim_z[1]}) [{f}] dz dy dx"
+        return {"proceso": proceso, "resultado_simbolico": str(integral), "resultado_numerico": f"{integral.evalf():.4f}" if integral.is_number else "N/A"}
 
-        # Sustituir x, y, z por sus equivalentes en otras coordenadas si es necesario
-        if coordenadas == 'cilindricas':
-            expr_func = expr_func.subs({x: r * sympy.cos(theta), y: r * sympy.sin(theta)})
-            # Añadir el Jacobiano r
-            expr_func *= r
-        elif coordenadas == 'esfericas':
-            expr_func = expr_func.subs({
-                x: rho * sympy.sin(phi) * sympy.cos(theta),
-                y: rho * sympy.sin(phi) * sympy.sin(theta),
-                z: rho * sympy.cos(phi)
-            })
-            # Añadir el Jacobiano rho^2 * sin(phi)
-            expr_func *= rho**2 * sympy.sin(phi)
+    def _solve_cylindrical(self, func_str, limits):
+        f_rect = self._parse_expression(func_str)
+        substitutions = {self.x: self.r * sp.cos(self.theta), self.y: self.r * sp.sin(self.theta)}
+        f_cyl = f_rect.subs(substitutions)
+        f_integrar = f_cyl * self.r
+        lim_z = [self._parse_expression(l) for l in limits['z']]
+        lim_r = [self._parse_expression(l) for l in limits['r']]
+        lim_theta = [self._parse_expression(l) for l in limits['theta']]
+        integral = sp.integrate(f_integrar, (self.z, lim_z[0], lim_z[1]), (self.r, lim_r[0], lim_r[1]), (self.theta, lim_theta[0], lim_theta[1]))
+        proceso = f"∫({lim_theta[0]})→({lim_theta[1]}) ∫({lim_r[0]})→({lim_r[1]}) ∫({lim_z[0]})→({lim_z[1]}) [{f_cyl}] * r dz dr dθ"
+        return {"proceso": proceso, "resultado_simbolico": str(integral), "resultado_numerico": f"{integral.evalf():.4f}" if integral.is_number else "N/A"}
 
-        # Convertir la expresión final a una función lambda para scipy
-        variables_integracion = mapa_vars[coordenadas]
-        func_numerica = sympy.lambdify(variables_integracion, expr_func, 'numpy')
+    def _solve_spherical(self, func_str, limits):
+        f_rect = self._parse_expression(func_str)
+        substitutions = {self.x: self.rho * sp.sin(self.phi) * sp.cos(self.theta), self.y: self.rho * sp.sin(self.phi) * sp.sin(self.theta), self.z: self.rho * sp.cos(self.phi)}
+        f_sph = f_rect.subs(substitutions)
+        f_integrar = f_sph * self.rho**2 * sp.sin(self.phi)
+        lim_rho = [self._parse_expression(l) for l in limits['rho']]
+        lim_phi = [self._parse_expression(l) for l in limits['phi']]
+        lim_theta = [self._parse_expression(l) for l in limits['theta']]
+        integral = sp.integrate(f_integrar, (self.rho, lim_rho[0], lim_rho[1]), (self.phi, lim_phi[0], lim_phi[1]), (self.theta, lim_theta[0], lim_theta[1]))
+        proceso = f"∫({lim_theta[0]})→({lim_theta[1]}) ∫({lim_phi[0]})→({lim_phi[1]}) ∫({lim_rho[0]})→({lim_rho[1]}) [{f_sph}] * ρ²sin(φ) dρ dφ dθ"
+        return {"proceso": proceso, "resultado_simbolico": str(integral), "resultado_numerico": f"{integral.evalf():.4f}" if integral.is_number else "N/A"}
 
-        # 3. Preparar los límites de integración
-        limites_finales = []
-        for var_char in var_str: # ['z', 'y', 'x'] o el orden que sea
-            lim_inf_str, lim_sup_str = limites[var_char]
+    def plot_rectangular_domain(self, limits):
+        try:
+            lim_x_expr = [self._parse_expression(l) for l in limits['x']]
+            lim_y_expr = [self._parse_expression(l) for l in limits['y']]
+            lim_z_expr = [self._parse_expression(l) for l in limits['z']]
+            z_func_baja = sp.lambdify((self.x, self.y), lim_z_expr[0], 'numpy')
+            z_func_alta = sp.lambdify((self.x, self.y), lim_z_expr[1], 'numpy')
+
+            if not all(l.is_number for l in lim_x_expr): return None
+
+            x_inf_num, x_sup_num = float(lim_x_expr[0]), float(lim_x_expr[1])
+            x_range = np.linspace(x_inf_num, x_sup_num, 30)
             
-            # Convierte los límites (que pueden ser funciones) a funciones lambda
-            # El orden de los argumentos en lambdify es importante
-            if var_char == var_str[0]: # Límite más interno
-                lim_inf = sympy.lambdify(variables_integracion[1:], sympy.sympify(lim_inf_str), 'numpy')
-                lim_sup = sympy.lambdify(variables_integracion[1:], sympy.sympify(lim_sup_str), 'numpy')
-            elif var_char == var_str[1]: # Límite intermedio
-                lim_inf = sympy.lambdify(variables_integracion[2:], sympy.sympify(lim_inf_str), 'numpy')
-                lim_sup = sympy.lambdify(variables_integracion[2:], sympy.sympify(lim_sup_str), 'numpy')
-            else: # Límite exterior (debe ser numérico)
-                lim_inf = float(eval(lim_inf_str))
-                lim_sup = float(eval(lim_sup_str))
+            y_lower_func = sp.lambdify(self.x, lim_y_expr[0], 'numpy')
+            y_upper_func = sp.lambdify(self.x, lim_y_expr[1], 'numpy')
             
-            limites_finales.extend([lim_inf, lim_sup])
+            y_lower_bound = y_lower_func(x_range)
+            y_upper_bound = y_upper_func(x_range)
 
-        # 4. Calcular la integral con tplquad de SciPy
-        # El orden de los límites para tplquad es: [gfun, hfun, qfun, rfun, a, b]
-        # que corresponde a: [y_inf, y_sup, z_inf, z_sup, x_inf, x_sup] si el orden es dy dz dx
-        # Nuestra estructura es [z_inf, z_sup, y_inf, y_sup, x_inf, x_sup]
-        # tplquad espera el orden de variables (x, y, z)
-        resultado, error = tplquad(
-            func_numerica,
-            limites_finales[4], limites_finales[5], # Límites de x (o primera var)
-            limites_finales[2], limites_finales[3], # Límites de y (o segunda var)
-            limites_finales[0], limites_finales[1]  # Límites de z (o tercera var)
-        )
+            y_lower_bound = np.atleast_1d(y_lower_bound)
+            y_upper_bound = np.atleast_1d(y_upper_bound)
 
-        return resultado
+            if y_lower_bound.size == 1:
+                y_lower_bound = np.full_like(x_range, y_lower_bound[0])
+            if y_upper_bound.size == 1:
+                y_upper_bound = np.full_like(x_range, y_upper_bound[0])
 
-    except Exception as e:
-        # Captura cualquier error (sintaxis, etc.) y lo devuelve como mensaje
-        print(e) # Imprime el error en consola para depuración
-        return "Error en la expresión o los límites."
+            x_vals, y_vals = np.array([]), np.array([])
+            for i in range(len(x_range)):
+                x_val = x_range[i]
+                y_start = y_lower_bound[i]
+                y_end = y_upper_bound[i]
+                y_range = np.linspace(y_start, y_end, 30)
+                
+                x_col = np.full_like(y_range, x_val)
+                x_vals = np.concatenate([x_vals, x_col])
+                y_vals = np.concatenate([y_vals, y_range])
+
+            Z_baja, Z_alta = z_func_baja(x_vals, y_vals), z_func_alta(x_vals, y_vals)
+            fig = plt.figure(figsize=(8, 7))
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_trisurf(x_vals, y_vals, Z_baja, cmap='winter', alpha=0.7)
+            ax.plot_trisurf(x_vals, y_vals, Z_alta, cmap='viridis', alpha=0.7)
+            ax.set_xlabel('Eje X'); ax.set_ylabel('Eje Y'); ax.set_zlabel('Eje Z')
+            ax.set_title('Dominio de Integración Rectangular')
+            return fig
+        except Exception as e:
+            print(f"Error al graficar (rectangular): {e}")
+            return None
+
+    def plot_cylindrical_domain(self, limits):
+        try:
+            lim_z_expr = [self._parse_expression(l) for l in limits['z']]
+            lim_r_expr = [self._parse_expression(l) for l in limits['r']]
+            lim_theta_expr = [self._parse_expression(l) for l in limits['theta']]
+            z_func_baja = sp.lambdify((self.r, self.theta), lim_z_expr[0], 'numpy')
+            z_func_alta = sp.lambdify((self.r, self.theta), lim_z_expr[1], 'numpy')
+            r_inf, r_sup = float(lim_r_expr[0]), float(lim_r_expr[1])
+            theta_inf, theta_sup = float(sp.sympify(lim_theta_expr[0]).evalf()), float(sp.sympify(lim_theta_expr[1]).evalf())
+            R, THETA = np.meshgrid(np.linspace(r_inf, r_sup, 30), np.linspace(theta_inf, theta_sup, 30))
+            X, Y = R * np.cos(THETA), R * np.sin(THETA)
+            Z_baja, Z_alta = z_func_baja(R, THETA), z_func_alta(R, THETA)
+            fig = plt.figure(figsize=(8, 7))
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(X, Y, Z_baja, cmap='winter', alpha=0.6)
+            ax.plot_surface(X, Y, Z_alta, cmap='viridis', alpha=0.6)
+            ax.set_xlabel('Eje X'); ax.set_ylabel('Eje Y'); ax.set_zlabel('Eje Z')
+            ax.set_title('Dominio de Integración Cilíndrico')
+            return fig
+        except Exception as e:
+            print(f"Error al graficar (cilíndrico): {e}")
+            return None
+
+    def plot_spherical_domain(self, limits):
+        try:
+            lim_rho_expr = [self._parse_expression(l) for l in limits['rho']]
+            lim_phi_expr = [self._parse_expression(l) for l in limits['phi']]
+            lim_theta_expr = [self._parse_expression(l) for l in limits['theta']]
+            rho_func = sp.lambdify((self.phi, self.theta), lim_rho_expr[1], 'numpy')
+            phi_inf, phi_sup = float(sp.sympify(lim_phi_expr[0]).evalf()), float(sp.sympify(lim_phi_expr[1]).evalf())
+            theta_inf, theta_sup = float(sp.sympify(lim_theta_expr[0]).evalf()), float(sp.sympify(lim_theta_expr[1]).evalf())
+            PHI, THETA = np.meshgrid(np.linspace(phi_inf, phi_sup, 40), np.linspace(theta_inf, theta_sup, 40))
+            RHO = rho_func(PHI, THETA)
+            X, Y, Z = RHO * np.sin(PHI) * np.cos(THETA), RHO * np.sin(PHI) * np.sin(THETA), RHO * np.cos(PHI)
+            fig = plt.figure(figsize=(8, 7))
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(X, Y, Z, cmap='magma', alpha=0.8)
+            ax.set_xlabel('Eje X'); ax.set_ylabel('Eje Y'); ax.set_zlabel('Eje Z')
+            ax.set_title('Dominio de Integración Esférico')
+            return fig
+        except Exception as e:
+            print(f"Error al graficar (esférico): {e}")
+            return None
