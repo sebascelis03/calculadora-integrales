@@ -62,3 +62,4 @@ El Punto 1 del proyecto está funcionalmente completo. El siguiente paso es conc
 el desarrollo del **Punto 2: Integrales de Superficie**. El bug de la gráfica rectangular queda 
 documentado como un problema técnico a revisitar en el futuro si el tiempo lo permite, pero 
 ya no es un impedimento para avanzar.
+No revise si las otras grafican o no :v
