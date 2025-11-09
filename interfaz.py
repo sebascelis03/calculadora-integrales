@@ -3,6 +3,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 
 # ¡Importante! Importamos la clase del cerebro desde el otro archivo.
 from calculo import MathBackend
@@ -12,6 +13,7 @@ class TripleIntegralFrame(ctk.CTkFrame):
         super().__init__(master)
         self.math_backend = math_backend
         self.grid_columnconfigure(0, weight=1)
+        self.current_plot_window = None  # Para rastrear ventanas de gráficos
 
         self.tab_view = ctk.CTkTabview(self, width=400)
         self.tab_view.pack(padx=20, pady=10, fill="both", expand=True)
@@ -119,9 +121,22 @@ class TripleIntegralFrame(ctk.CTkFrame):
                 self.show_plot_window(figura)
 
     def show_plot_window(self, fig):
+        # Cerrar ventana anterior si existe
+        if self.current_plot_window and self.current_plot_window.winfo_exists():
+            self.current_plot_window.destroy()
+        
         plot_window = ctk.CTkToplevel(self)
         plot_window.title("Gráfico del Dominio")
         plot_window.geometry("600x600")
+        self.current_plot_window = plot_window
+        
+        # Manejar el cierre de la ventana
+        def on_close():
+            plt.close(fig)
+            plot_window.destroy()
+            self.current_plot_window = None
+        
+        plot_window.protocol("WM_DELETE_WINDOW", on_close)
 
         canvas = FigureCanvasTkAgg(fig, master=plot_window)
         canvas.draw()
